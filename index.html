@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>終極巨大走馬燈</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: black;
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        #control-panel {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 10;
+            padding: 20px;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        input[type="text"] {
+            font-size: 20px;
+            padding: 12px;
+            width: 100%;
+            box-sizing: border-box;
+            border: 2px solid white;
+            background: black;
+            color: white;
+            text-align: center;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        button {
+            font-size: 20px;
+            padding: 12px 30px;
+            background-color: white;
+            color: black;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 8px;
+        }
+
+        #marquee-container {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            cursor: pointer;
+            overflow: hidden;
+            align-items: center; 
+            justify-content: flex-start;
+        }
+
+        #marquee-text {
+            position: absolute;
+            white-space: nowrap;
+            font-size: 85vh;     
+            font-weight: 900;    
+            line-height: 1;      
+            will-change: transform; 
+            transform: translate3d(100vw, 0, 0); 
+            padding: 0;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="control-panel">
+        <input type="text" id="user-input" maxlength="100" placeholder="請輸入100字以內的文字...">
+        <button id="start-btn">開始</button>
+    </div>
+
+    <div id="marquee-container">
+        <div id="marquee-text"></div>
+    </div>
+
+    <script>
+        const controlPanel = document.getElementById('control-panel');
+        const startBtn = document.getElementById('start-btn');
+        const userInput = document.getElementById('user-input');
+        const marqueeContainer = document.getElementById('marquee-container');
+        const marqueeText = document.getElementById('marquee-text');
+
+        let animationFrameId = null;
+        let currentX = 0;
+        let speed = 8; 
+
+        startBtn.addEventListener('click', () => {
+            const text = userInput.value.trim();
+            if (text === "") return;
+
+            marqueeText.innerText = text;
+            
+            controlPanel.style.display = 'none';
+            // 確保顯示模式為 flex 以便置中
+            marqueeContainer.style.display = 'flex'; 
+
+            // 重新獲取最新的螢幕寬度
+            const screenWidth = window.innerWidth || document.documentElement.clientWidth;
+            currentX = screenWidth;
+            marqueeText.style.transform = `translate3d(${currentX}px, 0, 0)`;
+
+            function updateMarquee() {
+                // 使用 getBoundingClientRect 確保在所有瀏覽器都能精準抓到巨大字體的實體寬度
+                const textWidth = marqueeText.getBoundingClientRect().width;
+                currentX -= speed;
+
+                if (currentX < -textWidth) {
+                    currentX = window.innerWidth || document.documentElement.clientWidth;
+                }
+
+                marqueeText.style.transform = `translate3d(${currentX}px, 0, 0)`;
+                animationFrameId = requestAnimationFrame(updateMarquee);
+            }
+
+            // 給予瀏覽器 50 毫秒時間準備舞台，然後啟動動畫
+            setTimeout(() => {
+                if (animationFrameId) cancelAnimationFrame(animationFrameId);
+                animationFrameId = requestAnimationFrame(updateMarquee);
+            }, 50);
+        });
+
+        marqueeContainer.addEventListener('click', () => {
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+            marqueeContainer.style.display = 'none';
+            controlPanel.style.display = 'block';
+            userInput.value = "";
+            userInput.focus();
+        });
+    </script>
+
+</body>
+</html>
